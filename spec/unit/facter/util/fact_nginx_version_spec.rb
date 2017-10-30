@@ -25,7 +25,18 @@ describe Facter::Util::Fact do
       end
       it { expect(Facter.fact(:nginx_version).value).to eq('0.7.0') }
     end
+
+    context 'symlinked to openresty' do
+      before do
+        allow(Facter::Util::Resolution).to receive(:which).with('openresty') { false }
+        allow(Facter::Util::Resolution).to receive(:which).with('nginx') { true }
+        allow(Facter::Util::Resolution).to receive(:exec).with('openresty -v 2>&1') { 'command not found: openresty' }
+        allow(Facter::Util::Resolution).to receive(:exec).with('nginx -v 2>&1') { 'nginx version: openresty/1.11.2.3' }
+      end
+      it { expect(Facter.fact(:nginx_version).value).to eq('1.11.2.3') }
+    end
   end
+
   context 'openresty' do
     context 'with current version output format' do
       before do
